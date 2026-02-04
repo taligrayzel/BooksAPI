@@ -1,0 +1,16 @@
+[MASTER]
+ignore=alembic,postgres_data,__pycache__
+jobs=0
+
+[MESSAGES CONTROL]
+disable=C0114,C0115,C0116,R0903,R0913,R0911,R0912,R1710,W0511,R1721,W0621
+
+[FORMAT]
+max-line-length=120
+
+[BASIC]
+good-names=i,j,db,id,_,e,f,ok,q,y,g
+argument-naming-style=snake_case
+
+[DESIGN]
+max-args=8
