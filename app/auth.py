@@ -34,7 +34,7 @@ def create_token(user_id: int) -> str:
 
 
 def get_current_user_from_request():
-    """Extract and validate JWT; return (user, None) or abort with 401."""
+    """Extract and validate JWT; return (user_id, None) or abort with 401."""
     auth_header = request.headers.get("Authorization")
     token = auth_header[7:] if auth_header and auth_header.startswith("Bearer ") else None
 
@@ -43,11 +43,12 @@ def get_current_user_from_request():
 
     try:
         data = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = data["user_id"]
         with session_scope() as session:
-            user = session.query(Users).get(data["user_id"])
+            user = session.query(Users).get(user_id)
             if not user:
                 abort(401, description="User not found")
-            return user, None
+            return user_id, None
     except jwt.ExpiredSignatureError:
         abort(401, description="Token expired")
     except jwt.InvalidTokenError:
@@ -57,9 +58,9 @@ def get_current_user_from_request():
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        user, err_response = get_current_user_from_request()
+        user_id, err_response = get_current_user_from_request()
         if err_response is not None:
             return err_response
-        return f(user, *args, **kwargs)
+        return f(user_id, *args, **kwargs)
 
     return decorated

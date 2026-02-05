@@ -11,7 +11,7 @@ authors_bp = Blueprint("authors", __name__)
 
 @authors_bp.route("/authors", methods=["POST"])
 @token_required
-def add_author(_current_user):
+def add_author(_current_user_id):
     ok, err, payload = validate_author_create(request.get_json())
     if not ok:
         abort(400, description=err)

@@ -78,6 +78,44 @@ API runs at **http://localhost:5000**.
 - **Swagger UI:** http://localhost:5000/docs
 - **OpenAPI spec:** http://localhost:5000/openapi.json
 
+## Testing
+
+Tests use **pytest** and **httpx** (WSGI transport) against an in-memory SQLite DB.
+
+```bash
+pip install -r requirements.txt
+python -m pytest tests/ -v
+```
+
+Set `DATABASE_URL` and `SECRET_KEY` in env to override; tests default to `sqlite:///:memory:` and a test secret.
+
+## Load testing (Locust)
+
+You can run basic load tests with **Locust** against the running API.
+
+1. Install dependencies (includes `locust`):
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Start the API (in another terminal):
+
+   ```bash
+   python run.py
+   ```
+
+3. Run Locust in headless mode, targeting ~100 requests/second (depends on response times):
+
+   ```bash
+   locust -f locustfile.py --headless -u 100 -r 20 -t 5m -H http://localhost:5000
+   ```
+
+   - **`-u 100`**: 100 concurrent simulated users.
+   - **`-r 20`**: spawn 20 users per second.
+   - **`-t 5m`**: run for 5 minutes.
+   - **`-H`**: API base URL.
+
 ## Project Structure
 
 ```
@@ -90,6 +128,8 @@ app/
   schemas/          # Validation & serialization
   models/           # SQLAlchemy models
 alembic/            # Migrations
+tests/              # pytest + httpx API tests
+locustfile.py       # Locust load test scenarios
 docker-compose.yml  # PostgreSQL container
 run.py              # Entry point
 ```

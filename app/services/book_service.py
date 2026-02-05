@@ -85,12 +85,12 @@ class BookService:
             self._session.rollback()
             return None, "Database integrity error"
 
-    def delete(self, book_id: int, current_user) -> tuple:
+    def delete(self, book_id: int, user_id: int) -> tuple:
         """Returns (True, None) or (False, error_message)."""
         book = self._session.get(Book, book_id)
         if book is None:
             return False, "Book not found"
-        if book.created_by != current_user:
+        if book.created_by_id is None or book.created_by_id != user_id:
             return False, "Forbidden"
         self._session.delete(book)
         self._session.commit()

@@ -3,6 +3,7 @@ from flask import Blueprint, abort, jsonify, request
 
 from app.database import session_scope
 from app.auth import token_required
+from app.models import Users
 from app.schemas import (
     validate_book_create,
     validate_book_update,
@@ -21,13 +22,14 @@ def home():
 
 @books_bp.route("/books", methods=["POST"])
 @token_required
-def add_book(current_user):
+def add_book(current_user_id):
     ok, err, payload = validate_book_create(request.get_json())
     if not ok:
         abort(400, description=err)
 
     with session_scope() as session:
-        book, err = BookService(session).create(payload, current_user)
+        user = session.get(Users, current_user_id)
+        book, err = BookService(session).create(payload, user)
         if err:
             abort(409 if "already exists" in err else 400, description=err)
         book_id, book_title = book.id, book.title
@@ -61,7 +63,7 @@ def get_book_by_id(book_id):
 
 @books_bp.route("/books/<int:book_id>", methods=["PUT"])
 @token_required
-def update_book_by_id(_current_user, book_id):
+def update_book_by_id(_current_user_id, book_id):
     ok, err, payload = validate_book_update(request.get_json())
     if not ok:
         abort(400, description=err)
@@ -81,9 +83,9 @@ def update_book_by_id(_current_user, book_id):
 
 @books_bp.route("/books/<int:book_id>", methods=["DELETE"])
 @token_required
-def delete_book_by_id(current_user, book_id):
+def delete_book_by_id(current_user_id, book_id):
     with session_scope() as session:
-        _, err = BookService(session).delete(book_id, current_user)
+        _, err = BookService(session).delete(book_id, current_user_id)
     if err:
         if err == "Book not found":
             abort(404, description=err)
