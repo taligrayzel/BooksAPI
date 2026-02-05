@@ -51,7 +51,7 @@ Flask REST API for managing books and authors, with user registration and JWT au
 ## Run
 
 ```bash
- python run.py
+python run.py
 ```
 
 API runs at **http://localhost:5000**.
@@ -116,6 +116,26 @@ You can run basic load tests with **Locust** against the running API.
    - **`-t 5m`**: run for 5 minutes.
    - **`-H`**: API base URL.
 
+4. **Cleanup after the load test** (remove Locust-created users and their books):
+
+   ```bash
+   python -m scripts.cleanup_after_loadtest
+   ```
+
+   This deletes users with `username` starting with `locust_` and all books they created. Uses the same `DATABASE_URL` as the app.
+
+### Performance check guidelines
+
+When you run Locust, check the **response time percentiles** in the summary:
+
+- For local development on a laptop, rough targets:
+  - **Median (50%)**: ideally \< **500–800 ms**
+  - **p95** (95%): ideally \< **1–2 s**
+  - Occasional slower responses are expected during heavy load, but sustained **5–10 s** latencies mean the app or DB is saturated.
+- If you see `QueuePool limit ... reached` or many HTTP 500s in Locust:
+  - Lower the load (smaller `-u`/`-r`, larger `wait_time` in `locustfile.py`), or
+  - Increase DB pool sizes in `app/database.py` and ensure Postgres has enough resources.
+
 ## Project Structure
 
 ```
@@ -129,6 +149,7 @@ app/
   models/           # SQLAlchemy models
 alembic/            # Migrations
 tests/              # pytest + httpx API tests
+scripts/            # Post-load-test cleanup
 locustfile.py       # Locust load test scenarios
 docker-compose.yml  # PostgreSQL container
 run.py              # Entry point
